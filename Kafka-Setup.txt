@@ -1,0 +1,84 @@
+1. Download the Binary File ( not src.tgz ), download file.tgz file.
+
+2. goto Kafka Root Folder, Execure  ".\bin\windows\kafka-storage.bat random-uuid" on cmd
+
+3. You will get a uuid code . Eg. asauai7VSoisTFp_cX0brA. This is your Cluster ID.
+
+4. If you have config/kraft folder, RUN .\bin\windows\kafka-storage.bat format -t asauai7VSoisTFp_cX0brA -c config\kraft\server.properties
+
+5. If dont have KRAFT folder, RUN .\bin\windows\kafka-storage.bat format -t asauai7VSoisTFp_cX0brA -c config\server.properties
+
+6. If you get 2026-01-31T16:33:02.545192900Z main ERROR Reconfiguration failed: No configuration found for '266474c2' at 'null' in 'null' Because controller.quorum.voters is not set on this controller, you must specify one of the following: --standalone, --initial-controllers, or --no-initial-controllers.
+
+	then goto config/serer.properties,  Add below lines at the bottom.
+	
+	# KRaft settings
+		process.roles=broker,controller
+		node.id=1
+		controller.quorum.voters=1@localhost:9093
+		listeners=PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
+		inter.broker.listener.name=PLAINTEXT
+		controller.listener.names=CONTROLLER
+		log.dirs=C:/kafka-logs
+		
+7. Now Run .\bin\windows\kafka-storage.bat format -t asauai7VSoisTFp_cX0brA -c config\server.properties
+
+8. If you saw something like 2026-01-31T16:34:29.545597500Z main ERROR Reconfiguration failed: No configuration found for '266474c2' at 'null' in 'null' Formatting metadata directory C:/kafka-logs with metadata.version 4.1-IV1.
+	This means your logs folder formatting is successful .
+	
+9. Now Run .\bin\windows\kafka-server-start.bat config\server.properties
+10. If you get 'wmic' is not recognized as an internal or external command, operable program or batch file.
+	then it means we hae to upgrade our script. 
+	
+11. Now Run bash bin/kafka-server-start.sh config/server.properties ) IN BASH
+
+13.  If you now get <3>WSL (14 - Relay) ERROR: CreateProcessCommon:798: execvpe(/bin/bash) failed: No such file or directory
+	This means WSL Isnt Installed properly.
+	
+14. Open C:\kafka_2.13-4.1.1\bin\windows\kafka-server-start.bat
+
+15. Search for something like for /f "tokens=2 delims==;" %%A in ('wmic os get localdatetime /value') do set DTS=%%A
+	OR
+	Something like IF ["%KAFKA_HEAP_OPTS%"] EQU [""] (
+    rem detect OS architecture
+    wmic os get osarchitecture | find /i "32-bit" >nul 2>&1
+    IF NOT ERRORLEVEL 1 (
+        rem 32-bit OS
+        set KAFKA_HEAP_OPTS=-Xmx512M -Xms512M
+    ) ELSE (
+        rem 64-bit OS
+        set KAFKA_HEAP_OPTS=-Xmx1G -Xms1G
+    )
+)
+
+16. Replace it with 
+	IF ["%KAFKA_HEAP_OPTS%"] EQU [""] (
+		set KAFKA_HEAP_OPTS=-Xmx1G -Xms1G
+	)
+	
+17. Now Start Kafka using
+	.\bin\windows\kafka-server-start.bat config\server.properties
+
+18. If you see something like 2026-01-31T16:39:22.232265500Z main ERROR Reconfiguration failed: No configuration found for '266474c2' at 'null' in 'null'
+	and not getting any output, means your server is Up and RUNNING
+	
+19 . To Check , Goto kafka home,	
+	Run .\bin\windows\kafka-topics.bat --bootstrap-server localhost:9092 --list
+	If no error appears, broker is working.
+	Now Lets use Kafka : 
+	
+	1. Create a topic using
+		.\bin\windows\kafka-topics.bat --create --topic orders --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+
+	2. Start Producer 
+		.\bin\windows\kafka-console-producer.bat --topic orders --bootstrap-server localhost:9092
+
+	3.  Type some thing like orders1 Enter Button, order2  Enter Button
+	4. Start Consumer ( new TErminal )
+		.\bin\windows\kafka-console-consumer.bat --topic orders --from-beginning --bootstrap-server localhost:9092
+
+
+
+	
+
+ 
