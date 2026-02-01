@@ -1,0 +1,160 @@
+🧠 First: This Is NOT a File
+
+Your brain is thinking:
+
+“Reader reached end → where does next line come from?”
+
+But this stream is a live network socket, not stored data.
+
+🌊 What’s Actually Happening Underneath
+4
+🔌 Layer 1 — Wikimedia Server
+
+Wikimedia has a server constantly generating events:
+
+User edits page → Event created → Sent to SSE stream
+
+
+That server pushes text over an open HTTP connection like this:
+
+data: {json1}\n
+\n
+data: {json2}\n
+\n
+data: {json3}\n
+
+🌐 Layer 2 — TCP Socket (The Hidden Pipe)
+
+When this line runs:
+
+Response response = client.newCall(request).execute();
+
+
+OkHttp:
+
+Opens a TCP socket
+
+Performs HTTP handshake
+
+Keeps connection OPEN
+
+Server keeps writing bytes into that socket
+
+Think of a pipe between your app and Wikimedia.
+
+📥 Layer 3 — response.body().byteStream()
+InputStream input = response.body().byteStream();
+
+
+This InputStream is connected directly to that socket.
+
+So:
+
+Server writes bytes → Socket receives → InputStream buffers
+
+📖 Layer 4 — BufferedReader
+BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+
+
+BufferedReader:
+
+Keeps an internal memory buffer
+
+Waits until it sees a newline \n
+
+Returns ONE line at a time
+
+🔁 Now Your Exact Question
+
+After one data: line is read…
+Where does the NEXT line come from?
+
+The answer:
+
+reader.readLine() BLOCKS (pauses) until:
+
+More bytes arrive from Wikimedia
+
+Those bytes reach the socket
+
+InputStream reads them
+
+BufferedReader detects a newline
+
+It returns the next line
+
+🎯 Timeline Example
+Time T1 → readLine() called
+Time T2 → No data yet → thread WAITING
+Time T3 → Someone edits Wikipedia
+Time T4 → Server pushes "data: {...}\n"
+Time T5 → Socket receives bytes
+Time T6 → BufferedReader gets full line
+Time T7 → readLine() RETURNS line
+
+
+So your loop is basically:
+
+while(true) {
+    WAIT for internet data
+    process event
+}
+
+💡 KEY CONCEPT: Blocking I/O
+
+This line:
+
+line = reader.readLine();
+
+
+is blocking I/O.
+
+It literally means:
+
+“Pause this thread until the internet gives me a full line.”
+
+No polling.
+No loop inside.
+The OS + OkHttp handle waiting.
+
+🧵 Thread State While Waiting
+
+When no event is happening:
+
+Your thread = SLEEPING
+CPU usage = almost zero
+Connection = still open
+
+
+So this is efficient.
+
+🔥 Super Simple Analogy
+
+Imagine:
+
+📞 You’re on a phone call
+👂 You say nothing and just listen
+The other person speaks whenever they want
+
+You don’t hang up.
+You don’t ask repeatedly.
+You just wait.
+
+readLine() = “listen for next sentence”
+
+🧩 Final Mental Model
+Wikimedia Server writes text
+        ↓
+Internet
+        ↓
+TCP Socket
+        ↓
+OkHttp InputStream
+        ↓
+BufferedReader buffer
+        ↓
+readLine() returns next line
+
+🚀 One-Sentence Summary
+
+The next line doesn’t “exist” yet — readLine() sleeps until Wikimedia pushes more data into the open socket, and then returns it.
