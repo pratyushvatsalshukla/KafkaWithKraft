@@ -13,6 +13,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>liveProject</name>
 	<description>Real Time Wikimedia Kafka Project</description>
+    <modules>
+        <module>Producer</module>
+    </modules>
     <packaging>pom</packaging>
     <url/>
 	<licenses>
