@@ -47,7 +47,7 @@ public class WikimediaChangesProducer {
 
         String line;
         while ((line = reader.readLine()) != null) { //Reads one line from the live HTTP stream
-            if (line.startsWith("data: ")) { // Filters only actual event payloads
+            if (line.startsWith("data: ")) { // Filters only actual event payloads because data is the actual json
                 String json = line.substring(6); //Removes "data: " prefix
                 kafkaTemplate.send(topic, json); //Pushes event JSON into Kafka
                 log.info("Sent to Kafka -> {}", json);
