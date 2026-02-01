@@ -46,10 +46,10 @@ public class WikimediaChangesProducer {
         log.info("Connected to Wikimedia stream");
 
         String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.startsWith("data: ")) {
-                String json = line.substring(6);
-                kafkaTemplate.send(topic, json);
+        while ((line = reader.readLine()) != null) { //Reads one line from the live HTTP stream
+            if (line.startsWith("data: ")) { // Filters only actual event payloads
+                String json = line.substring(6); //Removes "data: " prefix
+                kafkaTemplate.send(topic, json); //Pushes event JSON into Kafka
                 log.info("Sent to Kafka -> {}", json);
             }
         }
