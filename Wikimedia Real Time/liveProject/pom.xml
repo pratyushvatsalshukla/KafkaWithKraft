@@ -13,6 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>liveProject</name>
 	<description>Real Time Wikimedia Kafka Project</description>
+    <packaging>pom</packaging>
     <url/>
 	<licenses>
 		<license/>
