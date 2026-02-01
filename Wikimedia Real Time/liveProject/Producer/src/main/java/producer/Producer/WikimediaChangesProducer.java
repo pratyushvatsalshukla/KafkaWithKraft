@@ -1,10 +1,5 @@
 package producer.Producer;
 
-import com.launchdarkly.eventsource.ConnectStrategy;
-import com.launchdarkly.eventsource.EventSource;
-import com.launchdarkly.eventsource.HttpConnectStrategy;
-import com.launchdarkly.eventsource.background.BackgroundEventHandler;
-import com.launchdarkly.eventsource.background.BackgroundEventSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -16,8 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @Slf4j
