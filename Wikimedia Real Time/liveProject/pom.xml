@@ -15,6 +15,7 @@
 	<description>Real Time Wikimedia Kafka Project</description>
     <modules>
         <module>Producer</module>
+        <module>Consumer</module>
     </modules>
     <packaging>pom</packaging>
     <url/>
